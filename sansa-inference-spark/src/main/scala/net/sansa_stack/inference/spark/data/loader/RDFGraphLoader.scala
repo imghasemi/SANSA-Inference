@@ -4,6 +4,7 @@ import java.net.URI
 
 import scala.language.implicitConversions
 
+import org.apache.jena.graph.Triple
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.sources.{BaseRelation, RelationProvider, SchemaRelationProvider, TableScan}
@@ -47,7 +48,7 @@ object RDFGraphLoader {
 //      .repartition(minPartitions)
 
 //  logger.info("finished loading " + triples.count() + " triples in " + (System.currentTimeMillis()-startTime) + "ms.")
-    new RDFGraph(triples)
+    RDFGraph(triples)
   }
 
   /**
@@ -126,7 +127,7 @@ object RDFGraphLoader {
       Array(splitted(0), splitted(1), splitted(2))
     })
 
-    //    val rdfTripleEncoder = org.apache.spark.sql.Encoders.kryo[RDFTriple]
+//    implicit val rdfTripleEncoder = org.apache.spark.sql.Encoders.kryo[RDFTriple]
     val spark = session.sqlContext
     import spark.implicits._
 
@@ -135,7 +136,7 @@ object RDFGraphLoader {
     val triples = session.read
       .textFile(path) // read the text file
       .map(new NTriplesStringToRDFTriple())
-      .as[RDFTriple]
+      .as[RDFTriple]//(rdfTripleEncoder)
       .as("triples")
     // (rdfTripleEncoder)
     //    val rowRDD = session.sparkContext
