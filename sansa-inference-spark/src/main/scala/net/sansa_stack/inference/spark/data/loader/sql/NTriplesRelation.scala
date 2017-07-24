@@ -9,6 +9,7 @@ import org.apache.jena.graph.Node
 import org.apache.jena.riot.lang.LangNTriples
 import org.apache.jena.riot.system.RiotLib
 import org.apache.jena.riot.tokens.{Tokenizer, TokenizerFactory}
+import org.apache.jena.sparql.util.FmtUtils
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.sources.{BaseRelation, PrunedScan, TableScan}
 import org.apache.spark.sql.types.{StringType, StructField, StructType}
@@ -59,7 +60,7 @@ class NTriplesRelation(location: String, userSchema: StructType, val mode: Parse
     val rows = mode match {
       case REGEX => rdd.map(line => Row.fromTuple(parseRegexPattern(line)))
       case SPLIT => rdd.map(line => Row.fromSeq(line.split(" ").toList))
-      case JENA => rdd.map(parseJena(_).get).map(t => Row.fromSeq(Seq(t.getSubject.toString, t.getPredicate.toString, t.getObject.toString)))
+      case JENA => rdd.map(parseJena(_).get).map(toRow(_))
     }
     rows
   }
@@ -202,6 +203,15 @@ class NTriplesRelation(location: String, userSchema: StructType, val mode: Parse
     var obj = split(2).trim
     obj = obj.substring(0, obj.lastIndexOf('.'))
     (split(0), split(1), obj)
+  }
+
+  private def toRow(triple: org.apache.jena.graph.Triple) = {
+    // we use the Jena rendering
+    val s = FmtUtils.stringForNode(triple.getSubject)
+    val p = FmtUtils.stringForNode(triple.getPredicate)
+    val o = FmtUtils.stringForNode(triple.getObject)
+
+    Row.fromSeq(Seq(s, p, o))
   }
 
   private def cleanly[A, B](resource: A)(cleanup: A => Unit)(doWork: A => B): Try[B] = {

@@ -88,7 +88,7 @@ class TurtleRelation(location: String, userSchema: StructType)
       .filter(!_._2.toString.trim.isEmpty)
       .map{ case (_, v) => v.toString.trim }
 
-//    turtleRDD.collect().foreach(chunk => println("Chunk:" + chunk))
+    turtleRDD.collect().foreach(chunk => println("Chunk:" + chunk))
 
     // 2. we need the prefixes - two options:
     // a) assume that all prefixes occur in the beginning of the document

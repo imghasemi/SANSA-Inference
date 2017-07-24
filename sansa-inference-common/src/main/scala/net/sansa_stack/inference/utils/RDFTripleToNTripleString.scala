@@ -3,7 +3,7 @@ package net.sansa_stack.inference.utils
 import net.sansa_stack.inference.data.RDFTriple
 
 /**
-  * Convert an RDFTriple object to an N-Triple string.
+  * Convert an [[RDFTriple]] object to an N-Triples string.
   *
   * @author Lorenz Buehmann
   */
