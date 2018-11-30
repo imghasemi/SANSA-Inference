@@ -1,0 +1,30 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix : <http://ex.org/> .
+@prefix dbpedia: <http://dbpedia.org/resource/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+
+@prefix ds1: <http://datasource1.org/> .
+@prefix ds2: <http://datasource2.org/> .
+
+
+ds1:House a owl:Class .
+ds1:Capital a owl:Class .
+ds1:located a owl:ObjectProperty .
+ds1:located rdfs:domain ds1:House .
+ds1:located rdfs:range ds1:Location .
+
+ds2:Housing a owl:Class .
+ds2:Location a owl:Class .
+ds2:hasAddress a owl:ObjectProperty .
+ds2:hasAddress rdfs:domain ds1:Housing .
+ds2:hasAddress rdfs:range ds1:Address .
+
+ds1:House rdfs:subClassOf ds2:Housing .
+ds1:Location rdfs:equivalentClass ds2:Address .
+ds1:located owl:equivalentProperty ds2:hasAddress .
+
+foaf:Person owl:disjointClass dbpedia:City .
+
+
