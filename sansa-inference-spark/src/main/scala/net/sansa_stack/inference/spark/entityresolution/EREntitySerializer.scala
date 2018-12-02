@@ -24,7 +24,7 @@ object EREntitySerializerTest {
     val sc = new SparkContext(conf)
 
     val m = ModelFactory.createDefaultModel()
-    m.read(this.getClass.getClassLoader.getResourceAsStream("ER/sample.ttl"), null, "TURTLE")
+    m.read(this.getClass.getClassLoader.getResourceAsStream("ER/sample2.ttl"), null, "TURTLE")
 
     val triples = new mutable.HashSet[Triple]()
     val iter = m.listStatements()
@@ -39,7 +39,7 @@ object EREntitySerializerTest {
     val graph = RDFGraph(triplesRDD)
 
     // create reasoner
-    val reasoner = new ForwardRuleReasonerRDFS(sc)
+    val reasoner = new ForwardRuleReasonerOWLHorst(sc)
 
     // compute inferred graph
     val inferredGraph = reasoner.apply(graph)
