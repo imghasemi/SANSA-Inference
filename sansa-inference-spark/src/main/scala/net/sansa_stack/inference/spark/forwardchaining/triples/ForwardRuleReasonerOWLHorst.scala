@@ -404,7 +404,8 @@ class ForwardRuleReasonerOWLHorst(sc: SparkContext, parallelism: Int = 2) extend
       subClassOfTriplesTrans,
       subPropertyOfTriplesTrans,
       equivClassTriplesInf,
-      equivPropTriplesInf
+      equivPropTriplesInf,
+      sameAsTriples /* For entity resolution I need this part */
      )
 
     // return graph with inferred triples
