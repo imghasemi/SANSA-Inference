@@ -14,17 +14,14 @@ ds1:Capital a owl:Class .
 ds1:located a owl:ObjectProperty .
 ds1:located rdfs:domain ds1:House .
 ds1:located rdfs:range ds1:Location .
-
 ds2:Housing a owl:Class .
 ds2:Location a owl:Class .
 ds2:hasAddress a owl:ObjectProperty .
 ds2:hasAddress rdfs:domain ds1:Housing .
 ds2:hasAddress rdfs:range ds1:Address .
-
 ds1:House rdfs:subClassOf ds2:Housing .
 ds1:Location rdfs:equivalentClass ds2:Address .
 ds1:located owl:equivalentProperty ds2:hasAddress .
-
 foaf:Person owl:disjointClass dbpedia:City .
 
 
