@@ -1,15 +1,14 @@
 package net.sansa_stack.inference.spark.entityresolution
 
 import net.sansa_stack.inference.spark.data.model.RDFGraph
-import net.sansa_stack.inference.spark.forwardchaining.triples.{ForwardRuleReasonerEL, ForwardRuleReasonerOWLHorst, ForwardRuleReasonerRDFS}
+import net.sansa_stack.inference.spark.forwardchaining.triples.{ForwardRuleReasonerEL, ForwardRuleReasonerOWLHorst, ForwardRuleReasonerRDFS, TransitiveReasoner}
 import org.apache.jena.rdf.model.ModelFactory
-import org.apache.jena.vocabulary.{OWL2, RDF}
+import org.apache.jena.vocabulary.{OWL2, RDF, RDFS}
 import org.apache.spark.{SparkConf, SparkContext}
 import net.sansa_stack.inference.spark.data.model.TripleUtils._
 import org.apache.spark.rdd.RDD
 import org.apache.jena.graph.{Node, Triple}
 import org.slf4j.LoggerFactory
-
 import scala.collection.mutable
 
 
@@ -20,7 +19,7 @@ import scala.collection.mutable
 // and two entity fragments EFi and EFj
 case class EREntitySerializerSemanticResolutionSet(typeOfEntityURI: String, entityFragment: String)
 
-class EREntitySerializer(sc: SparkContext) {
+class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends TransitiveReasoner(sc, parallelism) {
   private val logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(this.getClass.getName))
 
 
@@ -57,6 +56,7 @@ class EREntitySerializer(sc: SparkContext) {
       manualInferenceTriples.add(st.asTriple())
     }
 
+    // merge the minimum manual inference with triple data
     triples ++= manualInferenceTriples
 
     val triplesRDD = sc.parallelize(triples.toSeq, 2)
@@ -99,6 +99,21 @@ class EREntitySerializer(sc: SparkContext) {
     val serialzedPackage = sc.union(functionalEntityFragments.distinct(),
       sameAsTriplesList.distinct(),
       equivalentClassTriplesList.distinct())
+
+    // extract the schema data
+    var sameAsTriplesExtracted = extractTriples(triplesRDD, OWL2.sameAs.asNode()) // owl:sameAs
+    val equivClassTriplesExtracted = extractTriples(triplesRDD, OWL2.equivalentClass.asNode) // owl:equivalentClass
+    val equivPropertyTriplesExtracted = extractTriples(triplesRDD, OWL2.equivalentProperty.asNode) // owl:equivalentProperty
+    var subClassOfTriplesExtracted = extractTriples(triplesRDD, RDFS.subClassOf.asNode()) // rdfs:subClassOf
+
+    // TODO: the BC properties should be used for serialization: Should be accessible in each worker node
+    val toBeBroadcasted = sc.broadcast(sc.union(
+      sameAsTriplesExtracted,
+      equivClassTriplesExtracted,
+      equivPropertyTriplesExtracted,
+      subClassOfTriplesExtracted
+    ).collect())
+
 
     println("======================================")
     println("|              PACKAGE               |")
@@ -154,6 +169,4 @@ object EREntitySerializerTest {
 
     sc.stop()
   }
-
-
 }

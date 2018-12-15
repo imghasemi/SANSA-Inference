@@ -49,7 +49,7 @@ class ERRuleBasedReasoner(sc: SparkContext) {
   private val logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(this.getClass.getName))
 
 
-  def apply() {
+  def application() {
     logger.info("Serialisation has been started: convert the data into pair(key, list(vals))...")
 
   }
