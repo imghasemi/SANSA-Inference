@@ -8,17 +8,6 @@
 @prefix ds2: <http://datasource2.org/> .
 
 
-ds1:House a owl:Class .
-ds1:Address a owl:Class .
-ds1:Capital a owl:Class .
-dbpedia:City a owl:Class .
-ds1:located a owl:ObjectProperty .
-
-ds2:Housing a owl:Class .
-ds2:Location a owl:Class .
-ds2:hasAddress a owl:ObjectProperty .
-ds2:inCity a owl:ObjectProperty .
-
 ds1:ad03 rdf:type ds1:Address .
 ds1:ad03 ds2:inCity ds1:paris .
 ds1:ad03 ds2:street "1 eiffel st."@en .
@@ -27,19 +16,7 @@ ds2:ad25 ds2:inCity ds2:dep75 .
 ds2:ad25 ds2:street "1 eiffel st."@en .
 
 
-
-ds1:paris owl:sameAs ds2:dep75 .
 ds1:paris rdf:type ds1:Capital .
 ds2:dep75 rdf:type dbpedia:City .
 ds1:Capital rdf:type dbpedia:City .
 
-
-
-ds1:Address owl:equivalentClass ds2:Location .
-
-
-ds1:House rdfs:subClassOf ds2:Housing .
-
-ds1:located owl:equivalentProperty ds2:hasAddress .
-
-foaf:Person owl:disjointClass dbpedia:City .

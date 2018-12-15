@@ -24,14 +24,14 @@ class EREntitySerializer(sc: SparkContext) {
   private val logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(this.getClass.getName))
 
 
-  def apply(dataPath: String, functionalKeys: EREntitySerializerSemanticResolutionSet): RDD[(Node, Iterable[Node])] = {
+  def apply(minManualInferencePath: String, dataPath: String, functionalKeys: EREntitySerializerSemanticResolutionSet): RDD[(Node, Iterable[Node])] = {
     logger.info("Serialisation has been started: convert the data into pair(key, list(vals))...")
     val typeOfEntityURI = functionalKeys.typeOfEntityURI
     val entityFragment = functionalKeys.entityFragment
     // val entityFragment2 = functionalKeys.entityFragment2
     val rdfTypeURI = RDF.`type`.getURI
 
-    // @deprecated Closure function
+    // @deprecated closure function
     def filterFunctionalKeysTriples(t: Triple): Boolean = {
       t.o.isLiteral || (t.predicateMatches(RDF.`type`.asNode()) && t.o.getURI == typeOfEntityURI) || t.p.getURI == entityFragment
     }
@@ -48,6 +48,16 @@ class EREntitySerializer(sc: SparkContext) {
       triples.add(st.asTriple())
     }
 
+    val manualInference = ModelFactory.createDefaultModel()
+    manualInference.read(this.getClass.getClassLoader.getResourceAsStream(minManualInferencePath), null, "TURTLE")
+    val manualInferenceTriples = new mutable.HashSet[Triple]()
+    val man = manualInference.listStatements()
+    while (man.hasNext) {
+      val st = man.next()
+      manualInferenceTriples.add(st.asTriple())
+    }
+
+    triples ++= manualInferenceTriples
 
     val triplesRDD = sc.parallelize(triples.toSeq, 2)
 
@@ -71,6 +81,12 @@ class EREntitySerializer(sc: SparkContext) {
 
     val functionalEntityFragments = cachedRDDGraph
       .filter(t => t.o.isLiteral || (t.predicateMatches(RDF.`type`.asNode()) && t.o.getURI == typeOfEntityURI) || t.p.getURI == entityFragment)
+
+    val functionalEntities = cachedRDDGraph
+      .filter(t => t.o.isLiteral || (t.predicateMatches(RDF.`type`.asNode()) && t.o.getURI == typeOfEntityURI) || t.p.getURI == entityFragment)
+      .map(t => t.s.toString())
+      .distinct()
+    functionalEntities.foreach(println)
 
     val objectURIsFragment = functionalEntityFragments
       .filter(t => !t.o.isLiteral)
@@ -127,7 +143,7 @@ object EREntitySerializerTest {
 
 
     val serializerTest = new EREntitySerializer(sc)
-    val data = serializerTest.apply("ER/sample2.ttl", addressFunctionalKeysRULE2)
+    val data = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2)
     println("======================================")
     println("|        SERIALIZED TRIPLES          |")
     println("======================================")
