@@ -44,6 +44,8 @@ import scala.collection.mutable
 // Based on the unique data linking {ds1:paris owl:sameAs ds2:dep75}, rule (R2) is triggered by variable unification
 // {?xi = ds1 : ad03, ?yi = ds1 : ad25, ?si =?sj = 1 eiffel st.}, which
 // generates the entity resolution {ds1 : ad03 owl : sameAs ds2 : ad25}, that is, ds1 : ad03 and ds2 : ad25 are RDF fragments of the same real work address.
+
+// Step 4 Trello appended
 class ERRuleBasedReasoner(sc: SparkContext) {
 
   private val logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(this.getClass.getName))
