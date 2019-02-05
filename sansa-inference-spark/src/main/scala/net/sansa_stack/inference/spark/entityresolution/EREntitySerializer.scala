@@ -166,8 +166,10 @@ object EREntitySerializerTest {
     val sc = new SparkContext(conf)
 
     // functional keys are provided by datasource experts
-    val addressFunctionalKeysRULE2 = EREntitySerializerSemanticResolutionSet("http://datasource2.org/Address", "http://datasource2.org/inCity")
     // val functionalKeys = EREntitySerializerFunctionalProperties("http://datasource2.org/Location", "http://datasource2.org/inCity")
+    val addressFunctionalKeysRULE2 = EREntitySerializerSemanticResolutionSet("http://datasource2.org/Location", "http://datasource2.org/inCity")
+    // This test case also works flawlessly
+    // val addressFunctionalKeysRULE2 = EREntitySerializerSemanticResolutionSet("http://datasource1.org/Address", "http://datasource2.org/inCity")
 
 
     val serializerTest = new EREntitySerializer(sc)
