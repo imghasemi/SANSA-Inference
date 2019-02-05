@@ -82,11 +82,19 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     val functionalEntityFragments = cachedRDDGraph
       .filter(t => t.o.isLiteral || (t.predicateMatches(RDF.`type`.asNode()) && t.o.getURI == typeOfEntityURI) || t.p.getURI == entityFragment)
 
-    val functionalEntities = cachedRDDGraph
-      .filter(t => t.o.isLiteral || (t.predicateMatches(RDF.`type`.asNode()) && t.o.getURI == typeOfEntityURI) || t.p.getURI == entityFragment)
-      .map(t => t.s.toString())
-      .distinct()
+    /*    val functionalEntities = cachedRDDGraph
+          .filter(t => t.o.isLiteral || (t.predicateMatches(RDF.`type`.asNode()) && t.o.getURI == typeOfEntityURI) || t.p.getURI == entityFragment)
+          .map(t => t.s.toString())
+          .distinct()
+    */
+    println("======================================")
+    println("|     FUNCTIONAL RELATED TRIPLES     |")
+    println("======================================")
     functionalEntityFragments.foreach(println)
+    println("======================================")
+    println("|                 END                |")
+    println("======================================")
+
 
     val objectURIsFragment = functionalEntityFragments
       .filter(t => !t.o.isLiteral)
@@ -96,10 +104,8 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     val equivalentClassTriplesList = cachedRDDGraph
       .filter(t => t.p == OWL2.equivalentClass.asNode)
 
-    val serialzedPackage = sc.union(functionalEntityFragments.distinct(),
-      sameAsTriplesList.distinct(),
-      equivalentClassTriplesList.distinct())
 
+    /*
     // extract the schema data
     var sameAsTriplesExtracted = extractTriples(triplesRDD, OWL2.sameAs.asNode()) // owl:sameAs
     val equivClassTriplesExtracted = extractTriples(triplesRDD, OWL2.equivalentClass.asNode) // owl:equivalentClass
@@ -113,10 +119,17 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
       equivPropertyTriplesExtracted,
       subClassOfTriplesExtracted
     ).collect())
+*/
 
+
+    // STEP 1: Entity Serialization
+    // These triples should be broadcasted
+    val serialzedPackage = sc.union(functionalEntityFragments.distinct(),
+      sameAsTriplesList.distinct(),
+      equivalentClassTriplesList.distinct())
 
     println("======================================")
-    println("|              PACKAGE               |")
+    println("|      ENTITY SERIALIZATION BC       |")
     println("======================================")
     serialzedPackage.foreach(println)
     println("======================================")
@@ -153,7 +166,7 @@ object EREntitySerializerTest {
     val sc = new SparkContext(conf)
 
     // functional keys are provided by datasource experts
-    val addressFunctionalKeysRULE2 = EREntitySerializerSemanticResolutionSet("http://datasource2.org/Location", "http://datasource2.org/inCity")
+    val addressFunctionalKeysRULE2 = EREntitySerializerSemanticResolutionSet("http://datasource2.org/Address", "http://datasource2.org/inCity")
     // val functionalKeys = EREntitySerializerFunctionalProperties("http://datasource2.org/Location", "http://datasource2.org/inCity")
 
 
