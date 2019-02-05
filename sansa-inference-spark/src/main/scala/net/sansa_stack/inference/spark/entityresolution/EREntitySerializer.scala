@@ -59,7 +59,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     // merge the minimum manual inference with triple data
     triples ++= manualInferenceTriples
 
-    val triplesRDD = sc.parallelize(triples.toSeq, 2)
+    val triplesRDD = sc.parallelize(triples.toSeq, parallelism)
 
     val graph = RDFGraph(triplesRDD)
 
@@ -86,7 +86,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
       .filter(t => t.o.isLiteral || (t.predicateMatches(RDF.`type`.asNode()) && t.o.getURI == typeOfEntityURI) || t.p.getURI == entityFragment)
       .map(t => t.s.toString())
       .distinct()
-    functionalEntities.foreach(println)
+    functionalEntityFragments.foreach(println)
 
     val objectURIsFragment = functionalEntityFragments
       .filter(t => !t.o.isLiteral)
@@ -123,7 +123,6 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     println("|                 END                |")
     println("======================================")
 
-    serialzedPackage.foreach(println)
 
     val sameAsTriples = cachedRDDGraph
       .filter(t => t.o.isLiteral || (t.p.getURI == rdfTypeURI && t.o.toString() == typeOfEntityURI) || t.getPredicate.getURI == entityFragment)
@@ -136,6 +135,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
 
     logger.info("...Serialized data created " + (System.currentTimeMillis() - startTime) + "ms.")
 
+    // Returns RDD[(Node, Iterable[Node, Node])]
     sameAsTriples.cache()
   }
 
