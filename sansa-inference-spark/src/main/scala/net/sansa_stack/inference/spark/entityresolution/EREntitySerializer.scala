@@ -145,7 +145,6 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
 
     sameAsFinder.collect().foreach(println)
 
-    println("SAME AS")
     // returns entities that share the properties together with high probability
     val sameAsTripleEmitter = sameAsFinder.filter(t => t._2 >= 2).map(t => t._1)
       .flatMap { entitiy =>
@@ -181,19 +180,22 @@ object EREntitySerializerTest {
     val sc = new SparkContext(conf)
 
     // functional keys are provided by datasource experts
-    // val functionalKeys = EREntitySerializerFunctionalProperties("http://datasource2.org/Location", "http://datasource2.org/inCity")
     val addressFunctionalKeysRULE2 = EREntitySerializerSemanticResolutionSet("http://datasource2.org/Location", "http://datasource2.org/inCity")
     // This test case also works flawlessly
-    // val addressFunctionalKeysRULE2 = EREntitySerializerSemanticResolutionSet("http://datasource1.org/Address", "http://datasource2.org/inCity")
+    val addressFunctionalKeysRULE1 = EREntitySerializerSemanticResolutionSet("http://datasource1.org/Address", "http://datasource2.org/inCity")
+
+    // Test for Houses
+    // val addressFunctionalKeysRULE1 = EREntitySerializerSemanticResolutionSet("http://datasource2.org/Housing", "http://datasource1.org/Located")
 
 
     val serializerTest = new EREntitySerializer(sc)
-    val data = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, null)
-    val data2 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, data)
+    val inferredR2 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, null)
+    val inferredR1 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE1, inferredR2)
+
     println("======================================")
     println("|        SERIALIZED TRIPLES          |")
     println("======================================")
-    data2.foreach(println)
+    inferredR1.foreach(println)
     println("======================================")
     println("|                 END                |")
     println("======================================")
