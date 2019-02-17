@@ -6,9 +6,11 @@ import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.vocabulary.{OWL2, RDF, RDFS}
 import org.apache.spark.{SparkConf, SparkContext}
 import net.sansa_stack.inference.spark.data.model.TripleUtils._
+import net.sansa_stack.inference.utils.CollectionUtils
 import org.apache.spark.rdd.RDD
 import org.apache.jena.graph.{Node, Triple}
 import org.slf4j.LoggerFactory
+
 import scala.collection.mutable
 
 
@@ -23,7 +25,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
   private val logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(this.getClass.getName))
 
 
-  def apply(minManualInferencePath: String, dataPath: String, functionalKeys: EREntitySerializerSemanticResolutionSet): RDD[(Node, Iterable[Node])] = {
+  def apply(minManualInferencePath: String, dataPath: String, functionalKeys: EREntitySerializerSemanticResolutionSet, inferredSameAsTriples: RDD[Triple] = null): RDD[Triple] = {
     logger.info("Serialisation has been started: convert the data into pair(key, list(vals))...")
     val typeOfEntityURI = functionalKeys.typeOfEntityURI
     val entityFragment = functionalKeys.entityFragment
@@ -58,7 +60,8 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
 
     // merge the minimum manual inference with triple data
     triples ++= manualInferenceTriples
-
+    // Inferred sameAs triples from previous step
+    if(inferredSameAsTriples != null) {triples ++= inferredSameAsTriples.collect()}
     val triplesRDD = sc.parallelize(triples.toSeq, parallelism)
 
     val graph = RDFGraph(triplesRDD)
@@ -69,9 +72,8 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     // compute inferred graph
     val inferredGraph = reasoner.apply(graph)
     val cachedRDDGraph = inferredGraph.triples.cache()
-
     println("======================================")
-    println("|        INFERRED TRIPLES            |")
+    println("|          INFERRED TRIPLES          |")
     println("======================================")
     cachedRDDGraph.foreach(println)
     println("======================================")
@@ -105,51 +107,64 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
       .filter(t => t.p == OWL2.equivalentClass.asNode)
 
 
-    /*
-    // extract the schema data
-    var sameAsTriplesExtracted = extractTriples(triplesRDD, OWL2.sameAs.asNode()) // owl:sameAs
-    val equivClassTriplesExtracted = extractTriples(triplesRDD, OWL2.equivalentClass.asNode) // owl:equivalentClass
-    val equivPropertyTriplesExtracted = extractTriples(triplesRDD, OWL2.equivalentProperty.asNode) // owl:equivalentProperty
-    var subClassOfTriplesExtracted = extractTriples(triplesRDD, RDFS.subClassOf.asNode()) // rdfs:subClassOf
 
     // TODO: the BC properties should be used for serialization: Should be accessible in each worker node
-    val toBeBroadcasted = sc.broadcast(sc.union(
-      sameAsTriplesExtracted,
-      equivClassTriplesExtracted,
-      equivPropertyTriplesExtracted,
-      subClassOfTriplesExtracted
-    ).collect())
-*/
-
-
     // STEP 1: Entity Serialization
     // These triples should be broadcasted
-    val serialzedPackage = sc.union(functionalEntityFragments.distinct(),
+    val serializedPackage = sc.union(functionalEntityFragments.distinct(),
       sameAsTriplesList.distinct(),
       equivalentClassTriplesList.distinct())
+    val serializedPackageBC = sc.broadcast(serializedPackage.collect())
+
 
     println("======================================")
     println("|      ENTITY SERIALIZATION BC       |")
     println("======================================")
-    serialzedPackage.foreach(println)
+    serializedPackage.foreach(println)
     println("======================================")
     println("|                 END                |")
     println("======================================")
 
 
-    val sameAsTriples = cachedRDDGraph
+    val serializerStep = cachedRDDGraph
       .filter(t => t.o.isLiteral || (t.p.getURI == rdfTypeURI && t.o.toString() == typeOfEntityURI) || t.getPredicate.getURI == entityFragment)
       /* Maps to the tuple of subjects and objects */
-      .map(t => (t.s, t.o))
+      .map(t => (t.o, t.s))
       /* Group based on the Triple subject */
       .groupBy(_._1)
       /* serialized data based on the same keys */
       .map(t => t._1 -> t._2.map(_._2))
+    serializerStep.collect().foreach(println)
+
+
+    val sameAsFinder = serializerStep.map { t =>
+      val functionalVar = t._1
+      val sameAsNodes = t._2
+      (sameAsNodes, 1)
+    }.reduceByKey((x, y) => x + y)
+
+    sameAsFinder.collect().foreach(println)
+
+    println("SAME AS")
+    // returns entities that share the properties together with high probability
+    val sameAsTripleEmitter = sameAsFinder.filter(t => t._2 >= 2).map(t => t._1)
+      .flatMap { entitiy =>
+        for (x <- entitiy; y <- entitiy)
+          yield (Triple.create(x, OWL2.sameAs.asNode(), y))
+      }
+
+    println("======================================")
+    println("|      INFERRED sameAs TRIPLES       |")
+    println("======================================")
+    sameAsTripleEmitter.collect().foreach(println)
+    println("======================================")
+    println("|                 END                |")
+    println("======================================")
 
     logger.info("...Serialized data created " + (System.currentTimeMillis() - startTime) + "ms.")
 
-    // Returns RDD[(Node, Iterable[Node, Node])]
-    sameAsTriples.cache()
+    // Return sameAs Triples
+    sameAsTripleEmitter
   }
 
 }
@@ -173,11 +188,12 @@ object EREntitySerializerTest {
 
 
     val serializerTest = new EREntitySerializer(sc)
-    val data = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2)
+    val data = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, null)
+    val data2 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, data)
     println("======================================")
     println("|        SERIALIZED TRIPLES          |")
     println("======================================")
-    data.foreach(println)
+    data2.foreach(println)
     println("======================================")
     println("|                 END                |")
     println("======================================")
