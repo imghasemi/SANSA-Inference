@@ -106,9 +106,19 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     val equivalentClassTriplesList = cachedRDDGraph
       .filter(t => t.p == OWL2.equivalentClass.asNode)
 
+    val equivTriples = cachedRDDGraph
+      .filter(t => t.p == OWL2.equivalentClass.asNode)
+      .map(t => (t.s, t.o))
 
 
+   /* println("heeeeerrrreeeeeee")
     // TODO: the BC properties should be used for serialization: Should be accessible in each worker node
+    val equiClassOfMap = CollectionUtils.toMultiMap(equivTriples.map(t => (t._1, t._2)).collect)
+    val equiClassOfMapBC = sc.broadcast(equiClassOfMap) */
+
+
+
+
     // STEP 1: Entity Serialization
     // These triples should be broadcasted
     val serializedPackage = sc.union(functionalEntityFragments.distinct(),
