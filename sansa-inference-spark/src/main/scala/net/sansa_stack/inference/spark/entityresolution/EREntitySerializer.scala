@@ -175,7 +175,7 @@ object EREntitySerializerTest {
     // the SPARK config
     val conf = new SparkConf().setAppName("SPARK Reasoning")
     conf.set("spark.hadoop.validateOutputSpecs", "false")
-    conf.setMaster("local[4]")
+    conf.setMaster("spark://172.18.160.16:3077")
     conf.set("spark.eventLog.enabled", "true")
     val sc = new SparkContext(conf)
 
@@ -189,8 +189,12 @@ object EREntitySerializerTest {
 
 
     val serializerTest = new EREntitySerializer(sc)
-    val inferredR2 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, null)
-    val inferredR1 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE1, inferredR2)
+    // val inferredR2 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, null)
+    // val inferredR1 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE1, inferredR2)
+    val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
+    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/sample2.ttl"
+    val inferredR2 = serializerTest.apply(minMappingURI, sampleDataURI, addressFunctionalKeysRULE2, null)
+    val inferredR1 = serializerTest.apply(minMappingURI, sampleDataURI, addressFunctionalKeysRULE1, inferredR2)
 
     println("======================================")
     println("|        SERIALIZED TRIPLES          |")
