@@ -1,6 +1,8 @@
 #!/bin/bash
 
 SPARK_PATH=${SPARK_HOME}
+HADOOP_MASTER=hdfs://172.18.160.17:54310
+
 
 INPUT=$1
 OUTPUT=$2
@@ -18,7 +20,6 @@ EXECUTOR_MEMORY=19g #50g #255/3=63.75  63.75*0.07=4.46   64.75 - 4.46 ~ 60
 # the number of cores
 EXECUTOR_CORES=5 #15
 
-HADOOP_MASTER=hdfs://172.18.160.17:54310
 
 
 
