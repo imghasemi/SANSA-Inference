@@ -23,7 +23,7 @@ HADOOP_MASTER=hdfs://172.18.160.17:54310
 
 
 
-$SPARK_PATH/bin/spark-submit \
+/usr/local/spark/bin/spark-submit \
 		--class net.sansa_stack.inference.spark.entityresolution.EREntitySerializerTest \
 		--master spark://172.18.160.16:3090 \
 		--num-executors $NUM_EXECUTORS \
@@ -31,5 +31,5 @@ $SPARK_PATH/bin/spark-submit \
         --executor-cores $EXECUTOR_CORES \
         --driver-memory 4G \
  		~/Repository/SANSA-Inference/sansa-inference-spark/target/sansa-inference-spark_2.11-0.4.1-SNAPSHOT.jar \
- 		-o $HADOOP_MASTER/MohammadaliGhasemi/ER/output/${INPUT}-${OUTPUT}-Stats
+ 		-o hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/output/${INPUT}-${OUTPUT}-Stats
 
