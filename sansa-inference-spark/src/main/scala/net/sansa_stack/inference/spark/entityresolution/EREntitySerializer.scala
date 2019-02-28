@@ -10,7 +10,6 @@ import net.sansa_stack.inference.utils.CollectionUtils
 import org.apache.spark.rdd.RDD
 import org.apache.jena.graph.{Node, Triple}
 import org.slf4j.LoggerFactory
-
 import scala.collection.mutable
 
 
@@ -175,7 +174,6 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     // Return sameAs Triples
     sameAsTripleEmitter
   }
-
 }
 
 object EREntitySerializerTest {
@@ -214,7 +212,6 @@ object EREntitySerializerTest {
     println("======================================")
     println("|                 END                |")
     println("======================================")
-
     sc.stop()
   }
 }
