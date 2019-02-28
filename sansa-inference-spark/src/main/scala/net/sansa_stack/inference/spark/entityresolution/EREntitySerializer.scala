@@ -186,7 +186,7 @@ object EREntitySerializerTest {
     val conf = new SparkConf().setAppName("SPARK ER Reasoning")
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.set("spark.hadoop.validateOutputSpecs", "false")
-    conf.setMaster("local[*]")
+    conf.setMaster("spark://172.18.160.16:3077")
     conf.set("spark.eventLog.enabled", "true")
     val sc = new SparkContext(conf)
 
