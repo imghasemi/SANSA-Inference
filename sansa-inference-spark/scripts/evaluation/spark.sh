@@ -10,11 +10,6 @@ LOG_LOCATION=~/logs
 exec > >(tee -i ${INPUT}_Stats.log)
 exec 2>&1
 
-# Log Location on Server.
-LOG_LOCATION=~/logs
-exec > >(tee -i ${INPUT}_er-${ITER}.log)
-exec 2>&1
-
 
 # the number of executors requested
 NUM_EXECUTORS=35 #11 # 3 executors per node except the master node
