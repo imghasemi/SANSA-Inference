@@ -11,6 +11,15 @@ import org.apache.spark.rdd.RDD
 import org.apache.jena.graph.{Node, Triple}
 import org.slf4j.LoggerFactory
 import scala.collection.mutable
+import net.sansa_stack.rdf.spark.stats._
+
+import org.apache.spark.sql.SparkSession
+import java.net.URI
+import net.sansa_stack.rdf.spark.io._
+import org.apache.jena.riot.Lang
+import scala.collection.mutable
+import java.io.File
+
 
 
 // EXAMPLE: (?xi rdf:type ds1:Location ) ∧ (?yj rdf:type ds1:Location ) ∧ (?xi ds2:street ?si) ∧ (?yj ds2:street ?sj)∧(?si owl:sameAs ?sj) ⇒ (?xi owl:sameAs ?yj)
@@ -24,7 +33,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
   private val logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(this.getClass.getName))
 
 
-  def apply(minManualInferencePath: String, dataPath: String, functionalKeys: EREntitySerializerSemanticResolutionSet, inferredSameAsTriples: RDD[Triple] = null): RDD[Triple] = {
+  def apply(data: RDD[Triple], functionalKeys: EREntitySerializerSemanticResolutionSet, inferredSameAsTriples: RDD[Triple] = null): RDD[Triple] = {
     logger.warn("Serialization has been started...")
     val typeOfEntityURI = functionalKeys.typeOfEntityURI
     val entityFragment = functionalKeys.entityFragment
@@ -38,32 +47,34 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
 
     val startTime = System.currentTimeMillis()
 
-    val m = ModelFactory.createDefaultModel()
-    m.read(this.getClass.getClassLoader.getResourceAsStream(dataPath), null, "TURTLE")
+//     val m = ModelFactory.createDefaultModel()
+//     println(dataPath)
+//     m.read(this.getClass.getClassLoader.getResourceAsStream(dataPath), null, "TURTLE")
 
-    val triples = new mutable.HashSet[Triple]()
-    val iter = m.listStatements()
-    while (iter.hasNext) {
-      val st = iter.next()
-      triples.add(st.asTriple())
-    }
 
-    val manualInference = ModelFactory.createDefaultModel()
-    manualInference.read(this.getClass.getClassLoader.getResourceAsStream(minManualInferencePath), null, "TURTLE")
-    val manualInferenceTriples = new mutable.HashSet[Triple]()
-    val man = manualInference.listStatements()
-    while (man.hasNext) {
-      val st = man.next()
-      manualInferenceTriples.add(st.asTriple())
-    }
+//    val triples = new mutable.HashSet[Triple]()
+//    val iter = m.listStatements()
+//    while (iter.hasNext) {
+//      val st = iter.next()
+//      triples.add(st.asTriple())
+//    }
+
+//    val manualInference = ModelFactory.createDefaultModel()
+//    manualInference.read(this.getClass.getClassLoader.getResourceAsStream(minManualInferencePath), null, "TURTLE")
+//    val manualInferenceTriples = new mutable.HashSet[Triple]()
+//    val man = manualInference.listStatements()
+//    while (man.hasNext) {
+//      val st = man.next()
+//      manualInferenceTriples.add(st.asTriple())
+//    }
 
     // merge the minimum manual inference with triple data
-    triples ++= manualInferenceTriples
-    // Inferred sameAs triples from previous step
-    if(inferredSameAsTriples != null) {triples ++= inferredSameAsTriples.collect()}
-    val triplesRDD = sc.parallelize(triples.toSeq, parallelism)
+//    triples ++= manualInferenceTriples
+//    // Inferred sameAs triples from previous step
+    if(inferredSameAsTriples != null) {data.union(inferredSameAsTriples)}
+//    val triplesRDD = sc.parallelize(data, parallelism)
 
-    val graph = RDFGraph(triplesRDD)
+    val graph = RDFGraph(data)
 
     // create reasoner
     val reasoner = new ForwardRuleReasonerOWLHorst(sc)
@@ -158,7 +169,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     val sameAsTripleEmitter = sameAsFinder.filter(t => t._2 >= 2).map(t => t._1)
       .flatMap { entitiy =>
         for (x <- entitiy; y <- entitiy)
-          yield (Triple.create(x, OWL2.sameAs.asNode(), y))
+          yield Triple.create(x, OWL2.sameAs.asNode(), y)
       }
 
     println("======================================")
@@ -181,12 +192,22 @@ object EREntitySerializerTest {
 
   def main(args: Array[String]) {
     // the SPARK config
-    val conf = new SparkConf().setAppName("SPARK ER Reasoning")
-    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-    conf.set("spark.hadoop.validateOutputSpecs", "false")
-    conf.setMaster("spark://172.18.160.16:3090")
-    conf.set("spark.eventLog.enabled", "true")
-    val sc = new SparkContext(conf)
+//    val conf = new SparkConf().setAppName("SPARK ER Reasoning")
+//    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+//    conf.set("spark.hadoop.validateOutputSpecs", "false")
+//    conf.setMaster("spark://172.18.160.16:3090")
+//    conf.set("spark.eventLog.enabled", "true")
+//    val sc = new SparkContext(conf)
+
+
+    val spark = SparkSession.builder
+      .appName("ER Reasoning")
+//      .master("spark://172.18.160.16:3090")
+      .master("local[*]")
+
+      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .config("spark.eventLog.enabled", "true")
+      .getOrCreate()
 
     // functional keys are provided by datasource experts
     val addressFunctionalKeysRULE2 = EREntitySerializerSemanticResolutionSet("http://datasource2.org/Location", "http://datasource2.org/inCity")
@@ -197,13 +218,31 @@ object EREntitySerializerTest {
     // val addressFunctionalKeysRULE1 = EREntitySerializerSemanticResolutionSet("http://datasource2.org/Housing", "http://datasource1.org/Located")
 
 
-    val serializerTest = new EREntitySerializer(sc)
     // val inferredR2 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, null)
     // val inferredR1 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE1, inferredR2)
-    val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
-    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/sample2.ttl"
-    val inferredR2 = serializerTest.apply(minMappingURI, sampleDataURI, addressFunctionalKeysRULE2, null)
-    val inferredR1 = serializerTest.apply(minMappingURI, sampleDataURI, addressFunctionalKeysRULE1, inferredR2)
+
+//    val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
+//    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/sample2.ttl"
+
+    val serializerTest = new EREntitySerializer(spark.sparkContext)
+    val minMappingURI = "/home/ghasemi/IdeaProjects/imghasemi-SANSA-Inference/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/minDataMappingByExperts.ttl"
+    val sampleDataURI = "/home/ghasemi/IdeaProjects/imghasemi-SANSA-Inference/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/sample2.ttl"
+
+
+    val lang = Lang.TURTLE
+    val minTriples = spark.rdf(lang)(minMappingURI)
+    val dataTriples = spark.rdf(lang)(sampleDataURI)
+
+    val minTriples2 = spark.sparkContext.parallelize(minTriples.collect())
+
+    val sum = dataTriples.union(minTriples2)
+    sum.collect().foreach(println)
+
+
+
+
+    val inferredR2 = serializerTest.apply(sum, addressFunctionalKeysRULE2, null)
+    val inferredR1 = serializerTest.apply(sum, addressFunctionalKeysRULE1, inferredR2)
 
     println("======================================")
     println("|        SERIALIZED TRIPLES          |")
@@ -212,6 +251,6 @@ object EREntitySerializerTest {
     println("======================================")
     println("|                 END                |")
     println("======================================")
-    sc.stop()
+    spark.stop()
   }
 }
