@@ -52,18 +52,18 @@
             </exclusions>
         </dependency>
         <!--<dependency>-->
-            <!--<groupId>net.sansa-stack</groupId>-->
-            <!--<artifactId>sansa-rdf-partition-core</artifactId>-->
+        <!--<groupId>net.sansa-stack</groupId>-->
+        <!--<artifactId>sansa-rdf-partition-core</artifactId>-->
         <!--</dependency>-->
 
         <!-- Query Layer -->
         <!--<dependency>-->
-            <!--<groupId>net.sansa-stack</groupId>-->
-            <!--<artifactId>sansa-query-spark-sparqlify</artifactId>-->
+        <!--<groupId>net.sansa-stack</groupId>-->
+        <!--<artifactId>sansa-query-spark-sparqlify</artifactId>-->
         <!--</dependency>-->
         <!--<dependency>-->
-            <!--<groupId>org.aksw.jena-sparql-api</groupId>-->
-            <!--<artifactId>jena-sparql-api-server-standalone</artifactId>-->
+        <!--<groupId>org.aksw.jena-sparql-api</groupId>-->
+        <!--<artifactId>jena-sparql-api-server-standalone</artifactId>-->
         <!--</dependency>-->
 
         <!-- Scala -->
@@ -180,10 +180,10 @@
             <scope>test</scope>
         </dependency>
         <!--<dependency>-->
-            <!--<groupId>com.groupon.dse</groupId>-->
-            <!--<artifactId>spark-metrics</artifactId>-->
-            <!--<version>2.0.1-SNAPSHOT</version>-->
-            <!--<scope>test</scope>-->
+        <!--<groupId>com.groupon.dse</groupId>-->
+        <!--<artifactId>spark-metrics</artifactId>-->
+        <!--<version>2.0.1-SNAPSHOT</version>-->
+        <!--<scope>test</scope>-->
         <!--</dependency>-->
 
         <!-- Logging -->
@@ -261,21 +261,21 @@
 
             <!-- enable scalatest -->
             <plugin>
-              <groupId>org.scalatest</groupId>
-              <artifactId>scalatest-maven-plugin</artifactId>
-              <configuration>
-                <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
-                <junitxml>.</junitxml>
-                <filereports>SANSA-TestSuite.txt</filereports>
-              </configuration>
-              <executions>
-                <execution>
-                  <id>test</id>
-                  <goals>
-                    <goal>test</goal>
-                  </goals>
-                </execution>
-              </executions>
+                <groupId>org.scalatest</groupId>
+                <artifactId>scalatest-maven-plugin</artifactId>
+                <configuration>
+                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+                    <junitxml>.</junitxml>
+                    <filereports>SANSA-TestSuite.txt</filereports>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>test</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -361,30 +361,31 @@
             <build>
                 <plugins>
                     <!--<plugin>-->
-                        <!--<groupId>org.apache.maven.plugins</groupId>-->
-                        <!--<artifactId>maven-assembly-plugin</artifactId>-->
-                        <!--<version>3.0.0</version>-->
-                        <!--<executions>-->
-                            <!--<execution>-->
-                                <!--<id>dist</id>-->
-                                <!--<phase>package</phase>-->
-                                <!--<goals>-->
-                                    <!--<goal>single</goal>-->
-                                <!--</goals>-->
-                                <!--<configuration>-->
-                                    <!--&lt;!&ndash;<descriptorRefs>&ndash;&gt;-->
-                                        <!--&lt;!&ndash;<descriptorRef>jar-with-dependencies</descriptorRef>&ndash;&gt;-->
-                                    <!--&lt;!&ndash;</descriptorRefs>&ndash;&gt;-->
-                                    <!--<descriptors>-->
-                                        <!--<descriptor>src/main/assembly/assembly.xml</descriptor>-->
-                                    <!--</descriptors>-->
-                                <!--</configuration>-->
-                            <!--</execution>-->
-                        <!--</executions>-->
+                    <!--<groupId>org.apache.maven.plugins</groupId>-->
+                    <!--<artifactId>maven-assembly-plugin</artifactId>-->
+                    <!--<version>3.0.0</version>-->
+                    <!--<executions>-->
+                    <!--<execution>-->
+                    <!--<id>dist</id>-->
+                    <!--<phase>package</phase>-->
+                    <!--<goals>-->
+                    <!--<goal>single</goal>-->
+                    <!--</goals>-->
+                    <!--<configuration>-->
+                    <!--&lt;!&ndash;<descriptorRefs>&ndash;&gt;-->
+                    <!--&lt;!&ndash;<descriptorRef>jar-with-dependencies</descriptorRef>&ndash;&gt;-->
+                    <!--&lt;!&ndash;</descriptorRefs>&ndash;&gt;-->
+                    <!--<descriptors>-->
+                    <!--<descriptor>src/main/assembly/assembly.xml</descriptor>-->
+                    <!--</descriptors>-->
+                    <!--</configuration>-->
+                    <!--</execution>-->
+                    <!--</executions>-->
                     <!--</plugin>-->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-shade-plugin</artifactId>
+                        <version>2.4.3</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>
@@ -392,28 +393,28 @@
                                     <goal>shade</goal>
                                 </goals>
                                 <configuration>
-                                    <minimizeJar>true</minimizeJar>
                                     <artifactSet>
                                         <excludes>
-                                            <exclude>org.apache.spark:spark-core_${scala.binary.version}</exclude>
-                                            <exclude>org.apache.spark:spark-sql_${scala.binary.version}</exclude>
-                                            <exclude>org.apache.spark:spark-graphx_${scala.binary.version}</exclude>
-                                            <exclude>org.apache.spark:*</exclude>
-                                            <exclude>org.eclipse.jetty:jetty-server</exclude>
-                                            <exclude>org.eclipse.jetty:jetty-continuation</exclude>
-                                            <exclude>org.eclipse.jetty:jetty-http</exclude>
-                                            <exclude>org.eclipse.jetty:jetty-io</exclude>
-                                            <exclude>org.eclipse.jetty:jetty-util</exclude>
-                                            <exclude>org.eclipse.jetty:jetty-security</exclude>
-                                            <exclude>org.eclipse.jetty:jetty-servlet</exclude>
-                                            <exclude>org.eclipse.jetty:*</exclude>
-                                            <exclude>org.eclipse.*:*</exclude>
-                                            <exclude>org.glassfish.*:*</exclude>
-                                            <exclude>org.netbeans.api:*</exclude>
-                                            <exclude>org.netbeans:*</exclude>
-                                            <exclude>org.scala-lang:scala-library</exclude>
-                                            <exclude>org.scala-lang:scala-compiler</exclude>
-                                            <exclude>org.scala-lang:scala-reflect</exclude>
+                                            <exclude>asm:asm</exclude>
+                                            <exclude>com.clearspring.analytics:stream</exclude>
+                                            <exclude>com.esotericsoftware:kryo*</exclude>
+                                            <exclude>com.esotericsoftware:minlog</exclude>
+                                            <exclude>com.fasterxml.jackson.core:jackson*</exclude>
+                                            <exclude>com.fasterxml.jackson.module:jackson-module*</exclude>
+                                            <exclude>com.google.code.findbugs:jsr305</exclude>
+                                            <exclude>com.google.code.gson:gson</exclude>
+                                            <exclude>com.google.inject.extensions:guice-servlet</exclude>
+                                            <exclude>com.google.guava:guava</exclude>
+                                            <exclude>com.google.protobuf:protobuf-java</exclude>
+                                            <exclude>com.jcraft:jsch</exclude>
+                                            <exclude>com.ning:compress-lzf</exclude>
+                                            <exclude>com.sun.jersey:jersey-*</exclude>
+                                            <exclude>com.sun.jersey.contribs:jersey-guice</exclude>
+                                            <exclude>com.sun.xml.bind:jaxb-impl</exclude>
+                                            <exclude>com.thoughtworks.paranamer:paranamer</exclude>
+                                            <exclude>com.twitter:chill*</exclude>
+                                            <exclude>com.univocity:univocity-parsers</exclude>
+                                            <exclude>commons-beanutils:commons-beanutils*</exclude>
                                             <exclude>commons-cli:commons-cli</exclude>
                                             <exclude>commons-codec:commons-codec</exclude>
                                             <exclude>commons-collections:commons-collections</exclude>
@@ -425,7 +426,7 @@
                                             <exclude>commons-logging:commons-logging</exclude>
                                             <exclude>commons-net:commons-net</exclude>
                                             <exclude>io.dropwizard.metrics:metrics*</exclude>
-                                            <exclude>io.netty:netty*</exclude>
+                                            <exckude>io.netty:netty*</exckude>
                                             <exclude>javax.activation:activation</exclude>
                                             <exclude>javax.annotation:javax.annotation-api</exclude>
                                             <exclude>javax.servlet:javax.servlet-api</exclude>
@@ -444,7 +445,7 @@
                                             <exclude>org.apache.avro:avro*</exclude>
                                             <exclude>org.apache.commons:commons-lang3</exclude>
                                             <exclude>org.apache.commons:commons-math3</exclude>
-                                            <exclude>org.apache.commons:commons-compress</exclude>
+                                            <!-- <exclude>org.apache.commons:commons-compress</exclude> -->
                                             <exclude>org.apache.curator:curator*</exclude>
                                             <exclude>org.apache.directory.api:*</exclude>
                                             <exclude>org.apache.directory.server:*</exclude>
@@ -454,13 +455,14 @@
                                             <exclude>org.apache.ivy:ivy</exclude>
                                             <exclude>org.apache.mesos:mesos</exclude>
                                             <exclude>org.apache.parquet:parquet*</exclude>
+                                            <exclude>org.apache.spark:*</exclude>
                                             <exclude>org.apache.xbean:xbean-asm5-shaded</exclude>
                                             <exclude>org.apache.zookeeper:zookeeper</exclude>
                                             <exclude>org.codehaus.jackson:jackson-*</exclude>
                                             <exclude>org.codehaus.janino:*</exclude>
                                             <exclude>org.codehaus.jettison:jettison</exclude>
                                             <exclude>org.fusesource.leveldbjni:leveldbjni-all</exclude>
-                                            <exclude>org.glassfish.hk2*</exclude>
+                                            <exckude>org.glassfish.hk2*</exckude>
                                             <exclude>org.glassfish.jersey*</exclude>
                                             <exclude>org.javassist:javassist</exclude>
                                             <exclude>org.json4s:json4s*</exclude>
@@ -474,53 +476,28 @@
                                             <exclude>org.xerial.snappy:snappy-java</exclude>
                                             <exclude>oro:oro</exclude>
                                             <exclude>xmlenc:xmlenc</exclude>
-                                            <exclude>org.gephi:*</exclude>
-                                            <exclude>org.jfree:*</exclude>
-                                            <exclude>com.itextpdf:*</exclude>
-                                            <exclude>org.apache.poi:*</exclude>
-                                            <exclude>org.apache.batik:*</exclude>
                                         </excludes>
-
                                     </artifactSet>
                                     <filters>
                                         <filter>
                                             <artifact>*:*</artifact>
                                             <excludes>
-                                                <!-- Avoid a Spark error: Invalid signature file digest for Manifest main attributes-->
                                                 <exclude>META-INF/*.SF</exclude>
                                                 <exclude>META-INF/*.DSA</exclude>
                                                 <exclude>META-INF/*.RSA</exclude>
-                                                <exclude>META-INF/maven/**</exclude>
                                             </excludes>
                                         </filter>
-                                        <filter>
-                                            <artifact>org.apache.jena:*</artifact>
-                                            <includes>
-                                                <include>**</include>
-                                            </includes>
-                                        </filter>
-                                        <filter>
-                                            <artifact>xerces:xercesImpl</artifact>
-                                            <includes>
-                                                <include>**</include>
-                                            </includes>
-                                        </filter>
-                                        <filter>
-                                            <artifact>org.aksw.jena-sparql-api:*</artifact>
-                                            <includes>
-                                                <include>**</include>
-                                            </includes>
-                                        </filter>
                                     </filters>
-                                    <finalName>dist-${project.artifactId}-${project.version}</finalName>
+                                    <createDependencyReducedPom>false</createDependencyReducedPom>
                                     <transformers>
                                         <transformer
-                                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
-                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                            <mainClass>net.sansa_stack.inference.spark.RDFGraphMaterializer</mainClass>
-                                        </transformer>
+                                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+
+                                        <!-- add Main-Class to manifest file -->
+                                        <!-- <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"> -->
+                                        <!-- <mainClass>com.mkyong.core.utils.App</mainClass> -->
+                                        <!-- </transformer> -->
                                     </transformers>
-                                    <createDependencyReducedPom>false</createDependencyReducedPom>
                                 </configuration>
                             </execution>
                         </executions>
@@ -576,7 +553,9 @@
                                 <phase>prepare-package</phase>
                                 <configuration>
                                     <tasks>
-                                        <replace token="VERSION_TMP" value="dist-${project.artifactId}-${project.version}.jar" dir="target/scripts">
+                                        <replace token="VERSION_TMP"
+                                                 value="dist-${project.artifactId}-${project.version}.jar"
+                                                 dir="target/scripts">
                                             <include name="cli"/>
                                         </replace>
                                     </tasks>
@@ -681,7 +660,7 @@
                                             <exclude>org.gephi:*</exclude>
                                             <exclude>org.jfree:*</exclude>
                                             <exclude>com.itextpdf:*</exclude>
-                                             <exclude>org.apache.poi:*</exclude>
+                                            <exclude>org.apache.poi:*</exclude>
                                             <exclude>org.apache.batik:*</exclude>
                                             <exclude>org.xerial:sqlite-jdbc</exclude>
                                         </excludes>
@@ -708,8 +687,10 @@
                                     <finalName>dist-${project.artifactId}-${project.version}</finalName>
                                     <outputDirectory>${project.build.directory}/shaded</outputDirectory>
                                     <transformers>
-                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                        <transformer
+                                                implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                                        <transformer
+                                                implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                             <mainClass>net.sansa_stack.inference.spark.RDFGraphMaterializer</mainClass>
                                         </transformer>
                                     </transformers>
