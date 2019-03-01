@@ -25,7 +25,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
 
 
   def apply(minManualInferencePath: String, dataPath: String, functionalKeys: EREntitySerializerSemanticResolutionSet, inferredSameAsTriples: RDD[Triple] = null): RDD[Triple] = {
-    logger.info("Serialisation has been started: convert the data into pair(key, list(vals))...")
+    logger.warn("Serialization has been started...")
     val typeOfEntityURI = functionalKeys.typeOfEntityURI
     val entityFragment = functionalKeys.entityFragment
     // val entityFragment2 = functionalKeys.entityFragment2
@@ -169,7 +169,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     println("|                 END                |")
     println("======================================")
 
-    logger.info("...Serialized data created " + (System.currentTimeMillis() - startTime) + "ms.")
+    logger.warn(".........Serialized data created " + (System.currentTimeMillis() - startTime) + "ms.")
 
     // Return sameAs Triples
     sameAsTripleEmitter
