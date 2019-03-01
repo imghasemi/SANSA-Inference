@@ -184,7 +184,8 @@ object EREntitySerializerTest {
     val conf = new SparkConf().setAppName("SPARK ER Reasoning")
     conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     conf.set("spark.hadoop.validateOutputSpecs", "false")
-    conf.setMaster("spark://172.18.160.16:3090")
+    /* conf.setMaster("spark://172.18.160.16:3090") */
+    conf.setMaster("local[*]")
     conf.set("spark.eventLog.enabled", "true")
     val sc = new SparkContext(conf)
 
@@ -200,9 +201,12 @@ object EREntitySerializerTest {
     val serializerTest = new EREntitySerializer(sc)
     // val inferredR2 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, null)
     // val inferredR1 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE1, inferredR2)
-    val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
-    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/sample2.ttl"
-    val inferredR2 = serializerTest.apply(minMappingURI, sampleDataURI, addressFunctionalKeysRULE2, null)
+//    val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
+//    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/sample2.ttl"
+
+    val minMappingURI = "/home/ghasemi/IdeaProjects/imghasemi-SANSA-Inference/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/minDataMappingByExperts.ttl"
+    val sampleDataURI = "/home/ghasemi/IdeaProjects/imghasemi-SANSA-Inference/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/sample2.ttl"
+    val inferredR2 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, null)
     val inferredR1 = serializerTest.apply(minMappingURI, sampleDataURI, addressFunctionalKeysRULE1, inferredR2)
 
     println("======================================")
