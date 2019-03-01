@@ -498,6 +498,9 @@
                                         <!-- <mainClass>com.mkyong.core.utils.App</mainClass> -->
                                         <!-- </transformer> -->
                                     </transformers>
+
+                                    <shadedArtifactAttached>true</shadedArtifactAttached>
+                                    <shadedClassifierName>jar-with-dependencies</shadedClassifierName>
                                 </configuration>
                             </execution>
                         </executions>
