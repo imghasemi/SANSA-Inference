@@ -226,11 +226,11 @@ object EREntitySerializerTest {
 //    val sampleDataURI = "/home/ghasemi/IdeaProjects/imghasemi-SANSA-Inference/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/sample2.ttl"
 
     val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
-    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/sample2.ttl"
+    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/Dbpedia_en.nt"
 
-    val lang = Lang.TURTLE
-    val minTriples = spark.rdf(lang)(minMappingURI)
-    val dataTriples = spark.rdf(lang)(sampleDataURI)
+    val lang = Lang.NTRIPLES
+    val minTriples = spark.rdf(Lang.TURTLE)(minMappingURI)
+    val dataTriples = spark.rdf(Lang.NTRIPLES)(sampleDataURI)
 
     val minTriples2 = spark.sparkContext.parallelize(minTriples.collect())
 
