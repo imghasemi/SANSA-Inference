@@ -81,7 +81,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
 
     // compute inferred graph
     val inferredGraph = reasoner.apply(graph)
-    val cachedRDDGraph = inferredGraph.triples.cache()
+    val cachedRDDGraph = inferredGraph.triples.persist()
     println("======================================")
     println("|          INFERRED TRIPLES          |")
     println("======================================")
