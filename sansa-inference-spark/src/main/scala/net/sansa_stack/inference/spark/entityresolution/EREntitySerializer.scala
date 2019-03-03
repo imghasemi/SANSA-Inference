@@ -188,9 +188,11 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
 }
 
 object EREntitySerializerTest {
+  private val logger = com.typesafe.scalalogging.Logger(LoggerFactory.getLogger(this.getClass.getName))
 
 
   def main(args: Array[String]) {
+
     // the SPARK config
 //    val conf = new SparkConf().setAppName("SPARK ER Reasoning")
 //    conf.set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
@@ -199,13 +201,15 @@ object EREntitySerializerTest {
 //    conf.set("spark.eventLog.enabled", "true")
 //    val sc = new SparkContext(conf)
 
+    logger.warn("ER has been started...")
+    val startTime = System.currentTimeMillis()
 
     val spark = SparkSession.builder
       .appName("ER Reasoning")
       .master("spark://172.18.160.16:3090")
 //      .master("local[*]")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .config("spark.eventLog.enabled", "true")
+//      .config("spark.eventLog.enabled", "true")
       .getOrCreate()
 
     // functional keys are provided by datasource experts
@@ -225,10 +229,10 @@ object EREntitySerializerTest {
 //    val minMappingURI = "/home/ghasemi/IdeaProjects/imghasemi-SANSA-Inference/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/minDataMappingByExperts.ttl"
 //    val sampleDataURI = "/home/ghasemi/IdeaProjects/imghasemi-SANSA-Inference/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/sample2.ttl"
 
-    val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
-    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/Dbpedia_en.nt"
-
     val lang = Lang.NTRIPLES
+    val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
+    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/BSBM_2GB.nt"
+
     val minTriples = spark.rdf(Lang.TURTLE)(minMappingURI)
     val dataTriples = spark.rdf(Lang.NTRIPLES)(sampleDataURI)
 
@@ -250,6 +254,7 @@ object EREntitySerializerTest {
     println("======================================")
     println("|                 END                |")
     println("======================================")
+    logger.warn("ER FINISHED at: " + (System.currentTimeMillis() - startTime) + "ms.")
     spark.stop()
   }
 }
