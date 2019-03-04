@@ -81,7 +81,7 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
 
     // compute inferred graph
     val inferredGraph = reasoner.apply(graph)
-    val cachedRDDGraph = inferredGraph.triples.persist()
+    val cachedRDDGraph = inferredGraph.triples.cache()
     println("======================================")
     println("|          INFERRED TRIPLES          |")
     println("======================================")
@@ -231,7 +231,7 @@ object EREntitySerializerTest {
 
     val lang = Lang.NTRIPLES
     val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
-    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/BSBM_2GB.nt"
+    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/BSBM_20GB.nt"
 
     val minTriples = spark.rdf(Lang.TURTLE)(minMappingURI)
     val dataTriples = spark.rdf(Lang.NTRIPLES)(sampleDataURI)
@@ -245,12 +245,12 @@ object EREntitySerializerTest {
 
 
     val inferredR2 = serializerTest.apply(sum, addressFunctionalKeysRULE2, null)
-    val inferredR1 = serializerTest.apply(sum, addressFunctionalKeysRULE1, inferredR2)
+//    val inferredR1 = serializerTest.apply(sum, addressFunctionalKeysRULE1, inferredR2)
 
     println("======================================")
     println("|        SERIALIZED TRIPLES          |")
     println("======================================")
-    inferredR1.foreach(println)
+    // inferredR1.foreach(println)
     println("======================================")
     println("|                 END                |")
     println("======================================")
