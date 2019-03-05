@@ -210,6 +210,7 @@ object EREntitySerializerTest {
 //      .master("local[*]")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
 //      .config("spark.eventLog.enabled", "true")
+      .config("spark.kryoserializer.buffer.max.mb", "2048")
       .getOrCreate()
 
     // functional keys are provided by datasource experts
@@ -231,7 +232,7 @@ object EREntitySerializerTest {
 
     val lang = Lang.NTRIPLES
     val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
-    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/BSBM_20GB.nt"
+    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/BSBM_2GB.nt"
 
     val minTriples = spark.rdf(Lang.TURTLE)(minMappingURI)
     val dataTriples = spark.rdf(Lang.NTRIPLES)(sampleDataURI)
