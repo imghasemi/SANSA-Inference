@@ -47,31 +47,10 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
 
     val startTime = System.currentTimeMillis()
 
-//     val m = ModelFactory.createDefaultModel()
-//     println(dataPath)
-//     m.read(this.getClass.getClassLoader.getResourceAsStream(dataPath), null, "TURTLE")
-
-
-//    val triples = new mutable.HashSet[Triple]()
-//    val iter = m.listStatements()
-//    while (iter.hasNext) {
-//      val st = iter.next()
-//      triples.add(st.asTriple())
-//    }
-
-//    val manualInference = ModelFactory.createDefaultModel()
-//    manualInference.read(this.getClass.getClassLoader.getResourceAsStream(minManualInferencePath), null, "TURTLE")
-//    val manualInferenceTriples = new mutable.HashSet[Triple]()
-//    val man = manualInference.listStatements()
-//    while (man.hasNext) {
-//      val st = man.next()
-//      manualInferenceTriples.add(st.asTriple())
-//    }
-
-    // merge the minimum manual inference with triple data
-//    triples ++= manualInferenceTriples
 //    // Inferred sameAs triples from previous step
-    if(inferredSameAsTriples != null) {data.union(inferredSameAsTriples)}
+    if(inferredSameAsTriples != null) {
+      data.union(inferredSameAsTriples)
+    }
 //    val triplesRDD = sc.parallelize(data, parallelism)
 
     val graph = RDFGraph(data)
@@ -121,13 +100,6 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
       .map(t => (t.s, t.o))
 
 
-   /* println("heeeeerrrreeeeeee")
-    // TODO: the BC properties should be used for serialization: Should be accessible in each worker node
-    val equiClassOfMap = CollectionUtils.toMultiMap(equivTriples.map(t => (t._1, t._2)).collect)
-    val equiClassOfMapBC = sc.broadcast(equiClassOfMap) */
-
-
-
 
     // STEP 1: Entity Serialization
     // These triples should be broadcasted
@@ -149,11 +121,12 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     val serializerStep = cachedRDDGraph
       .filter(t => t.o.isLiteral || (t.p.getURI == rdfTypeURI && t.o.toString() == typeOfEntityURI) || t.getPredicate.getURI == entityFragment)
       /* Maps to the tuple of subjects and objects */
-      .map(t => (t.o, t.s))
-      /* Group based on the Triple subject */
+      .map(t => (t.o.toString(), t.s))
+      /* Group based on the objects */
       .groupBy(_._1)
-      /* serialized data based on the same keys */
+      /* serialized data based on the same functional keys */
       .map(t => t._1 -> t._2.map(_._2))
+      //  (http://datasource2.org/Location,List(http://datasource1.org/ad03, http://datasource2.org/ad25))
     serializerStep.collect().foreach(println)
 
 
@@ -166,7 +139,8 @@ class EREntitySerializer(sc: SparkContext, parallelism: Int = 2) extends Transit
     sameAsFinder.collect().foreach(println)
 
     // returns entities that share the properties together with high probability
-    val sameAsTripleEmitter = sameAsFinder.filter(t => t._2 >= 2).map(t => t._1)
+    val threshold = 2
+    val sameAsTripleEmitter = sameAsFinder.filter(t => t._2 >= threshold).map(t => t._1)
       .flatMap { entitiy =>
         for (x <- entitiy; y <- entitiy)
           yield Triple.create(x, OWL2.sameAs.asNode(), y)
@@ -206,11 +180,10 @@ object EREntitySerializerTest {
 
     val spark = SparkSession.builder
       .appName("ER Reasoning")
-      .master("spark://172.18.160.16:3090")
-//      .master("local[*]")
+       .master("spark://172.18.160.16:3090")
+     // .master("local[*]")
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-//      .config("spark.eventLog.enabled", "true")
-      .config("spark.kryoserializer.buffer.max.mb", "2048")
+      .config("spark.kryoserializer.buffer.max.mb", "512")
       .getOrCreate()
 
     // functional keys are provided by datasource experts
@@ -218,35 +191,25 @@ object EREntitySerializerTest {
     // This test case also works flawlessly
     val addressFunctionalKeysRULE1 = EREntitySerializerSemanticResolutionSet("http://datasource1.org/Address", "http://datasource2.org/inCity")
 
-    // Test for Houses
-    // val addressFunctionalKeysRULE1 = EREntitySerializerSemanticResolutionSet("http://datasource2.org/Housing", "http://datasource1.org/Located")
-
-
-    // val inferredR2 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE2, null)
-    // val inferredR1 = serializerTest.apply("ER/minDataMappingByExperts.ttl", "ER/sample2.ttl", addressFunctionalKeysRULE1, inferredR2)
-
-
     val serializerTest = new EREntitySerializer(spark.sparkContext)
-//    val minMappingURI = "/home/ghasemi/IdeaProjects/imghasemi-SANSA-Inference/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/minDataMappingByExperts.ttl"
-//    val sampleDataURI = "/home/ghasemi/IdeaProjects/imghasemi-SANSA-Inference/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/sample2.ttl"
 
-    val lang = Lang.NTRIPLES
-    val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
-    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/BSBM_2GB.nt"
+//    val minMappingURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/ER/minDataMappingByExperts.ttl"
+    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/BSBM_100MB.nt"
+//    val minMappingURI = "/Users/mali/IdeaProjectsSCALA/imghasemi-forked/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/minDataMappingByExperts.ttl"
+//    val sampleDataURI = "/Users/mali/IdeaProjectsSCALA/imghasemi-forked/SANSA-Inference/sansa-inference-spark/src/main/resources/ER/sample2.ttl"
+//    val sampleDataURI2 = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/sample2.nt"
 
-    val minTriples = spark.rdf(Lang.TURTLE)(minMappingURI)
+    //    val minTriples = spark.rdf(Lang.TURTLE)(minMappingURI)
     val dataTriples = spark.rdf(Lang.NTRIPLES)(sampleDataURI)
 
-    val minTriples2 = spark.sparkContext.parallelize(minTriples.collect())
-
-    val sum = dataTriples.union(minTriples2)
-    sum.collect().foreach(println)
-
+//    val minTriples2 = spark.sparkContext.parallelize(minTriples.collect())
+//    val sum = dataTriples.union(minTriples2)
+//    sum.collect().foreach(println)
 
 
 
-    val inferredR2 = serializerTest.apply(sum, addressFunctionalKeysRULE2, null)
-//    val inferredR1 = serializerTest.apply(sum, addressFunctionalKeysRULE1, inferredR2)
+
+    val inferredR2 = serializerTest.apply(dataTriples, addressFunctionalKeysRULE2, null)
 
     println("======================================")
     println("|        SERIALIZED TRIPLES          |")
