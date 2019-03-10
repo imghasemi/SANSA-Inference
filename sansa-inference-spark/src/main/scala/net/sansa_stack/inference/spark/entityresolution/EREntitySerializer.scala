@@ -196,7 +196,7 @@ object EREntitySerializerTest {
 
     val serializerTest = new EREntitySerializer(spark.sparkContext)
 
-    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/BSBM_500MB.nt"
+    val sampleDataURI = "hdfs://172.18.160.17:54310/MohammadaliGhasemi/BSBM_1GB.nt"
     val dataTriples = spark.rdf(Lang.NTRIPLES)(sampleDataURI)
 
 
